@@ -40,3 +40,6 @@ Thumbs.db
 
 # Ignore md-data, it's just too big for now.
 md-data/
+
+# Files starting with tilde (MS Word)
+~*
