@@ -29,6 +29,10 @@ mdout*
 .Trashes
 ehthumbs.db
 Thumbs.db
+.directory
+
+# EndNote data directories
+*.Data/
 
 # SSL files
 *.pem
