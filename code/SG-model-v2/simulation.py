@@ -9,6 +9,7 @@ import matplotlib.ticker as mtick
 import numpy as np
 from matplotlib.gridspec import GridSpec
 from scipy.ndimage.filters import gaussian_filter
+import scipy as sc
 
 from aesthetics import *
 
@@ -75,6 +76,7 @@ class simulation(object):
         # ax1.legend()
         ax1.set_xlabel('Bins')
         ax1.set_ylabel('Intrausrface flux (cycles/second)')
+        ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycles/second'.format(np.mean(self.flux_u + self.flux_b), sc.stats.sem(self.flux_u + self.flux_b)))
         if self.name is not None:
             ax1.set_title(self.name)
         print('{}: C_intrasurface = {:6.2e}, C_intersurface = {}, catalytic rate = {}, cATP = {}, dt = {}'.format(label,
