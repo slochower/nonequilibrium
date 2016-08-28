@@ -29,8 +29,7 @@ class simulation(object):
         ax2.plot(range(self.bins), self.bound, c='b')
         ax2.set_title('Bound chemical-potential-like energies', y=1.05)
         ax2.set_xlabel('Bins')
-        fetching_plot(fig, ax1)
-        fetching_plot(fig, ax2)
+        fetching_plot(fig)
         plt.show()
 
     def plot_ss(self):
@@ -57,8 +56,7 @@ class simulation(object):
         # ax2.legend()
         ax2.set_xlabel('Bins')
 
-        fetching_plot(fig, ax1)
-        fetching_plot(fig, ax2)
+        fetching_plot(fig)
         plt.show()
 
     def plot_flux(self, label=None):
@@ -85,7 +83,7 @@ class simulation(object):
                                                                                                                   self.catalytic_rate,
                                                                                                                   self.cATP,
                                                                                                                   self.dt))
-        fetching_plot(fig, ax1)
+        fetching_plot(fig)
         plt.show()
 
     def plot_load(self):
@@ -103,9 +101,7 @@ class simulation(object):
                  label='PDF')
         ax2.set_title('Bound', y=1.05)
         ax2.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-
-        pretty_label(ax1)
-        pretty_label(ax2)
+        fetching_plot(fig)
         plt.show()
 
     def plot_load_extrapolation(self):
@@ -127,9 +123,7 @@ class simulation(object):
                  [extended_b[i] + self.load_function(i) for i in np.arange(-2 * self.bins, 2 * self.bins)], c='k')
         ax2.set_title('Bound', y=1.05)
         ax2.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-
-        pretty_label(ax1)
-        pretty_label(ax2)
+        fetching_plot(fig)
         plt.show()
 
     def data_to_energy(self, histogram):

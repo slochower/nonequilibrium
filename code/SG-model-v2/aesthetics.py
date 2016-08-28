@@ -124,7 +124,7 @@ def plot_scan(xx, yy, zz, xlabel, ylabel, title, xlog=True, ylog=True):
     plt.show()
 
 
-def fetching_plot(fig, ax, adjustment=0):
+def fetching_plot(fig, adjustment=0):
     sns.set()
     sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
     sns.set_style("white")
@@ -139,24 +139,25 @@ def fetching_plot(fig, ax, adjustment=0):
         r'\usepackage{graphicx}',
         r'\usepackage{upgreek}',
     ]
-    plt.tick_params(which='major', direction='out', length=10)
-    plt.tick_params(which='minor', direction='out', length=5)
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.xaxis.labelpad = 10
-    ax.yaxis.labelpad = 10
-    white_out(fig)
-    if ax.xaxis.get_scale() == 'linear':
-        pretty_label(ax)
-        ax.get_xaxis().set_minor_locator(mpl.ticker.AutoMinorLocator())
-        ax.get_yaxis().set_minor_locator(mpl.ticker.AutoMinorLocator())
-    elif ax.xaxis.get_scale() == 'log':
-        pass
-    # For scatter plots, where points get cut off
-    if adjustment != 0:
-        x0, x1, y0, y1 = ax.axis()
-        ax.xaxis((x0 - adjustment,
-                  x1 + adjustment,
-                  ))
+    for ax in fig.axes:
+        ax.tick_params(which='major', direction='out', length=10)
+        ax.tick_params(which='minor', direction='out', length=5)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.xaxis.labelpad = 10
+        ax.yaxis.labelpad = 10
+        white_out(fig)
+        if ax.xaxis.get_scale() == 'linear':
+            pretty_label(ax)
+            ax.get_xaxis().set_minor_locator(mpl.ticker.AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(mpl.ticker.AutoMinorLocator())
+        elif ax.xaxis.get_scale() == 'log':
+            pass
+        # For scatter plots, where points get cut off
+        if adjustment != 0:
+            x0, x1, y0, y1 = ax.axis()
+            ax.xaxis((x0 - adjustment,
+                    x1 + adjustment,
+                    ))
