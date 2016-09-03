@@ -1,6 +1,8 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
+import numpy as np
 
 
 def update_label(old_label, exponent_text):
@@ -97,9 +99,9 @@ def pretty_label(ax, axis='both'):
         ax.set_label_text(update_label(label, exponent_text))
 
 
-def plot_scan(xx, yy, zz, xlabel, ylabel, title, xlog=True, ylog=True):
+def plot_scan(ax, xx, yy, zz, xlabel, ylabel, title, xlog=True, ylog=True, trip=False):
     ''' Plot a 2D parameter scan with x, y, and z values.'''
-    fig, ax = plt.subplots()
+
     if ylog == True:
         ax.set_yscale('log')
     if xlog == True:
@@ -111,17 +113,20 @@ def plot_scan(xx, yy, zz, xlabel, ylabel, title, xlog=True, ylog=True):
         im = ax.pcolor(xx, yy, zz,
                        norm=LogNorm(vmin=zz.min(), vmax=zz.max()),
                        cmap=cmap)
-    else:
+    elif trip == False:
         im = ax.pcolor(xx, yy, zz,
                        cmap=cmap)
+    if trip:
+        im = ax.tripcolor(xx, yy, zz,
+                          cmap=cmap)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="10%", pad=0.05)
     cbar = plt.colorbar(im, cax=cax)
     ax.set_title(title, y=1.05)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    pretty_label(ax)
-    plt.show()
+    # pretty_label(ax)
+    # plt.show()
 
 
 def fetching_plot(fig, adjustment=0):
