@@ -392,7 +392,7 @@ class simulation(object):
         """
         These values are assigned to a new object, unless overridden later.
         """
-        self.dir = 'pka-md-data'
+        self.dir = '../../md-data/pka-md-data'
         self.name = None
         self.kT = 0.6  # RT = 0.6 kcal per mol
         self.C_intrasurface_0 = 1.71 * 10 ** 14  # degree per second
