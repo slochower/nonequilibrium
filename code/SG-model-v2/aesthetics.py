@@ -17,14 +17,6 @@ def update_label(old_label, exponent_text):
     return "{} ({} {})".format(label, exponent_text, units)
 
 
-def pretty_plot(fig, ax):
-    sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
-    sns.set_style("white")
-    white_out(fig)
-    sns.despine(offset=10, trim=True)
-    pretty_label(ax)
-
-
 def autolabel(rects):
     ''' Put labels on top of rectangles. '''
     for rect in rects:
@@ -129,7 +121,7 @@ def plot_scan(ax, xx, yy, zz, xlabel, ylabel, title, xlog=True, ylog=True, trip=
     # plt.show()
 
 
-def fetching_plot(fig, adjustment=0):
+def pretty_plot(fig, adjustment=0, scientific=True):
     sns.set()
     sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
     sns.set_style("white")
@@ -142,7 +134,7 @@ def fetching_plot(fig, adjustment=0):
         r'\renewcommand{\familydefault}{\sfdefault}',
         r'\usepackage[T1]{fontenc}',
         r'\usepackage{graphicx}',
-        r'\usepackage{upgreek}',
+        # r'\usepackage{upgreek}',
     ]
     for ax in fig.axes:
         ax.tick_params(which='major', direction='out', length=10)
@@ -155,7 +147,8 @@ def fetching_plot(fig, adjustment=0):
         ax.yaxis.labelpad = 10
         white_out(fig)
         if ax.xaxis.get_scale() == 'linear':
-            pretty_label(ax)
+            if scientific:
+                pretty_label(ax)
             ax.get_xaxis().set_minor_locator(mpl.ticker.AutoMinorLocator())
             ax.get_yaxis().set_minor_locator(mpl.ticker.AutoMinorLocator())
         elif ax.xaxis.get_scale() == 'log':

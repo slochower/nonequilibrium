@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+"""
+This module contains the code to calculate probabilty flux given two equilibrium
+population distributions.
+"""
 
 from __future__ import division, print_function
-
 import math as math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -10,8 +13,7 @@ import numpy as np
 from matplotlib.gridspec import GridSpec
 from scipy.ndimage.filters import gaussian_filter
 import scipy as sc
-
-from aesthetics import *
+import aesthetics
 
 
 class simulation(object):
@@ -29,7 +31,7 @@ class simulation(object):
         ax2.plot(range(self.bins), self.bound, c='b')
         ax2.set_title('Bound chemical-potential-like energies', y=1.05)
         ax2.set_xlabel('Bins')
-        fetching_plot(fig)
+        aesthetics.pretty_plot(fig)
         plt.show()
 
     def plot_ss(self):
@@ -56,7 +58,7 @@ class simulation(object):
         # ax2.legend()
         ax2.set_xlabel('Bins')
 
-        fetching_plot(fig)
+        aesthetics.pretty_plot(fig)
         plt.show()
 
     def plot_flux(self, label=None):
@@ -77,13 +79,13 @@ class simulation(object):
         ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycles/second'.format(np.mean(self.flux_u + self.flux_b), sc.stats.sem(self.flux_u + self.flux_b)))
         if self.name is not None:
             ax1.set_title(self.name)
-        print('{}: C_intrasurface = {:6.2e}, C_intersurface = {}, catalytic rate = {}, cATP = {}, dt = {}'.format(label,
-                                                                                                                  self.C_intrasurface,
+        print('{}: D = {:6.2e}, C_intersurface = {}, catalytic rate = {}, cATP = {}, dt = {}'.format(label,
+                                                                                                                  self.D,
                                                                                                                   self.C_intersurface,
                                                                                                                   self.catalytic_rate,
                                                                                                                   self.cATP,
                                                                                                                   self.dt))
-        fetching_plot(fig)
+        aesthetics.pretty_plot(fig)
         plt.show()
 
     def plot_load(self):
@@ -101,7 +103,7 @@ class simulation(object):
                  label='PDF')
         ax2.set_title('Bound', y=1.05)
         ax2.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        fetching_plot(fig)
+        aesthetics.pretty_plot(fig)
         plt.show()
 
     def plot_load_extrapolation(self):
@@ -123,7 +125,7 @@ class simulation(object):
                  [extended_b[i] + self.load_function(i) for i in np.arange(-2 * self.bins, 2 * self.bins)], c='k')
         ax2.set_title('Bound', y=1.05)
         ax2.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        fetching_plot(fig)
+        aesthetics.pretty_plot(fig)
         plt.show()
 
     def data_to_energy(self, histogram):
@@ -143,7 +145,7 @@ class simulation(object):
                 histogram_copy[i] = min(histogram_smooth[np.nonzero(histogram_smooth)])
         histogram_smooth = histogram_copy
         assert (not np.any(histogram_smooth == 0))
-        histogram_smooth /= np.sum(histogram_smooth)
+        histogram_smooth = histogram_smooth / np.sum(histogram_smooth)
         energy = -self.kT * np.log(histogram_smooth)
         return energy
 
@@ -157,15 +159,15 @@ class simulation(object):
         """
         This function calculates intrasurface rates using the energy difference between adjacent bins.
         """
-        forward_rates = self.C_intrasurface * np.exp(-1 * np.diff(energy_surface) / float(2 * self.kT))
-        backward_rates = self.C_intrasurface * np.exp(+1 * np.diff(energy_surface) / float(2 * self.kT))
+        forward_rates = self.D * np.exp(-1 * np.diff(energy_surface) / float(2 * self.kT))
+        backward_rates = self.D * np.exp(+1 * np.diff(energy_surface) / float(2 * self.kT))
         rate_matrix = np.zeros((self.bins, self.bins))
         for i in range(self.bins - 1):
             rate_matrix[i][i + 1] = forward_rates[i]
             rate_matrix[i + 1][i] = backward_rates[i]
-        rate_matrix[0][self.bins - 1] = self.C_intrasurface * np.exp(
+        rate_matrix[0][self.bins - 1] = self.D * np.exp(
             -(energy_surface[self.bins - 1] - energy_surface[0]) / float(2 * self.kT))
-        rate_matrix[self.bins - 1][0] = self.C_intrasurface * np.exp(
+        rate_matrix[self.bins - 1][0] = self.D * np.exp(
             +(energy_surface[self.bins - 1] - energy_surface[0]) / float(2 * self.kT))
         return rate_matrix
 
@@ -176,9 +178,9 @@ class simulation(object):
 
         surface_with_load = [energy_surface[i] + self.load_function(i) for i in range(self.bins)]
         # This should handle the interior elements just fine.
-        self.forward_rates = self.C_intrasurface * \
+        self.forward_rates = self.D * \
                              np.exp(-1 * np.diff(surface_with_load) / float(2 * self.kT))
-        self.backward_rates = self.C_intrasurface * \
+        self.backward_rates = self.D * \
                               np.exp(+1 * np.diff(surface_with_load) / float(2 * self.kT))
         rate_matrix = np.zeros((self.bins, self.bins))
         for i in range(self.bins - 1):
@@ -186,11 +188,11 @@ class simulation(object):
             rate_matrix[i + 1][i] = self.backward_rates[i]
 
         # But now the PBCs are a little tricky...
-        rate_matrix[0][self.bins - 1] = self.C_intrasurface * np.exp(
+        rate_matrix[0][self.bins - 1] = self.D * np.exp(
             -(energy_surface[self.bins - 1] + self.load_function(-1) -
               (energy_surface[0] + self.load_function(0))) / float(2 * self.kT))
 
-        rate_matrix[self.bins - 1][0] = self.C_intrasurface * np.exp(
+        rate_matrix[self.bins - 1][0] = self.D * np.exp(
             +(energy_surface[self.bins - 1] + self.load_function(self.bins - 1) -
               (energy_surface[0] + self.load_function(self.bins))) / float(2 * self.kT))
 
@@ -289,18 +291,34 @@ class simulation(object):
         steady-state distribution.
         """
         print('Running iterative method with {} iterations'.format(self.iterations))
-        population = np.random.rand(2 * self.bins)
+        # Instead of starting with a random population, I'm going to start with a population spike 
+        # in the first bin.
+        # population = np.random.rand(2 * self.bins)
+        population = np.zeros((2 * self.bins))
+        population[self.bins  / 2] = 1
         row_sums = population.sum(axis=0, keepdims=True)
         population = population / row_sums
-        iterations = 0
-        if self.ss is not None:
-            new_population = self.ss
+        # Now, keep track of the center of mass of the population.
+        self.iterative_com = []
+        self.iterative_com.append(sc.ndimage.measurements.center_of_mass(population))
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot(population, c='k', alpha=1)
+        # if self.ss is not None:
+        #    new_population = self.ss
+        new_population = np.copy(population)
         for i in range(self.iterations):
             new_population = np.dot(new_population, self.tm)
+            ax.plot(new_population, c='k', alpha=0.1)
+            self.iterative_com.append(sc.ndimage.measurements.center_of_mass(new_population))
         self.iterative_ss = new_population
+        ax.set_xlabel('Bin')
+        ax.set_ylabel('Population')
+        from aesthetics import pretty_plot
+        pretty_plot(fig)
         return
 
-    def simulate(self, plot=False, debug=False, pka_md_data=True):
+    def simulate(self, plot=False, debug=False, pka_md_data=True, user_energies=False):
         """
         Now this function takes in a file(name) and determins the energy surfaces automatically,
         so I don't forget to do it in an interactive session.
@@ -328,13 +346,15 @@ class simulation(object):
         else:
             # Populations are supplied manually.
             pass
-
-        self.unbound = self.data_to_energy(self.unbound_population)
-        self.bound = self.data_to_energy(self.bound_population) - self.offset_factor
+        if user_energies:
+            pass
+        else:
+            self.unbound = self.data_to_energy(self.unbound_population)
+            self.bound = self.data_to_energy(self.bound_population) - self.offset_factor
 
         self.bins = len(self.unbound)
         self.tm = np.zeros((self.bins, self.bins))
-        self.C_intrasurface = self.C_intrasurface_0 / (360. / self.bins) ** 2  # per degree per second
+        self.D = self.C_intrasurface_0 / (360. / self.bins) ** 2  # per degree per second
 
         if not self.load:
             u_rm = self.calculate_intrasurface_rates(self.unbound)
@@ -363,7 +383,7 @@ class simulation(object):
         if debug:
             self.parameters = {
                 'C_intersurface': self.C_intersurface,
-                'C_intrasurface': self.C_intrasurface,
+                'D': self.D,
                 'kT': self.kT,
                 'cATP': self.cATP,
                 'offset_factor': self.offset_factor,
@@ -392,18 +412,22 @@ class simulation(object):
         """
         These values are assigned to a new object, unless overridden later.
         """
+        # Model parameters
+        self.kT = 0.6                            # RT = 0.6 kcal per mol
+        self.C_intrasurface_0 = 1.71 * 10 ** 14  # degree per second
+        self.C_intersurface = 0.24 * 10 ** 6     # per mole per second
+        self.cATP = 2 * 10 ** -3                 # molar
+        self.offset_factor = 6.25                # kcal per mol
+        self.catalytic_rate = 140                # per second
+        self.iterations = 0
+        # Implementation parameters
         self.dir = '../../md-data/pka-md-data'
         self.name = None
-        self.kT = 0.6  # RT = 0.6 kcal per mol
-        self.C_intrasurface_0 = 1.71 * 10 ** 14  # degree per second
-        self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
-        self.cATP = 2 * 10 ** -3  # molar
-        self.offset_factor = 6.25  # kcal per mol
-        self.catalytic_rate = 140  # per second
-        self.iterations = 0
+        self.unbound_population = []
+        self.bound_population = []
         self.extra_precision = False
         self.load = False
         if self.load:
-            self.load_slope = self.bins  # kcal per mol per (2 * pi) radians
+            self.load_slope = self.bins         # kcal per mol per (2 * pi) radians
         else:
             self.load_slope = 0
