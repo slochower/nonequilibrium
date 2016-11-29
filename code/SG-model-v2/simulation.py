@@ -16,62 +16,24 @@ import scipy as sc
 import aesthetics
 import seaborn as sns
 
+
 class simulation(object):
     def plot_energy(self):
         """
         This function plots the unbound and bound energies associated with a simulation object.
         """
-        # fig = plt.figure(figsize=(12, 12))
-        # gs = GridSpec(2, 2, wspace=0.2, hspace=0.5)
-        # ax1 = plt.subplot(gs[0, 0])
-        # ax2 = plt.subplot(gs[0, 1])
-        # ax1.plot(range(self.bins), self.unbound, c='r')
-        # ax1.set_title('Unbound chemical-potential-like energies', y=1.05)
-        # ax1.set_xlabel('Bins')
-        # ax2.plot(range(self.bins), self.bound, c='b')
-        # ax2.set_title('Bound chemical-potential-like energies', y=1.05)
-        # ax2.set_xlabel('Bins')
-        # aesthetics.pretty_plot(fig)
-        # plt.show()
-        
-        # fig = plt.figure(figsize=(6*1.2, 6))
-        # gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
-        # ax1 = plt.subplot(gs[0, 0])
-        # #########
-        # ax1.plot(range(self.bins), self.unbound, c='b') 
-        # ax1.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
-        # ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi{}$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        # ax1.set_xlabel('Dihedral angle (rad)')
-        # ax1.set_ylabel(r'$\mu_{0}$ (kcal mol$^{-1}$)')
-        # aesthetics.paper_plot(fig, scientific=False)
-        # plt.show()
-        
-        # fig = plt.figure(figsize=(6*1.2, 6))
-        # gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
-        # ax2 = plt.subplot(gs[0, 0])
-        # ######
-        # ax2.plot(range(self.bins), self.bound, c='b')
-        # ax2.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
-        # ax2.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        # ax2.set_xlabel('Dihedral angle (rad)')
-        # ax2.set_ylabel(r'$\mu_{1}$ (kcal mol$^{-1}$)')
-        # aesthetics.paper_plot(fig, scientific=False)
-        # plt.show()
 
-        fig = plt.figure(figsize=(6*1.2, 6))
+        fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
-        #########
         ax1.plot(range(self.bins), self.unbound, c=self.unbound_clr)
-        ax1.plot(range(self.bins), self.bound, c=self.bound_clr) 
-        ax1.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
+        ax1.plot(range(self.bins), self.bound, c=self.bound_clr)
+        ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
         ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi{}$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         plt.show()
-
-
 
     def plot_ss(self):
         """
@@ -79,54 +41,12 @@ class simulation(object):
         By default, this will plot the eigenvector-derived steady-state distribution.
         """
 
-        # fig = plt.figure(figsize=(12, 12))
-        # gs = GridSpec(2, 2, wspace=0.4, hspace=0.5)
-        # ax1 = plt.subplot(gs[0, 0])
-        # ax2 = plt.subplot(gs[0, 1])
-        # ax1.plot(range(self.bins), self.ss[0:self.bins], c='r', label='SS')
-        # # ax1.plot(range(self.bins), self.PDF_unbound, c='k', label='PDF')
-        # # ax1.legend()
-        # ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        # ax1.set_title('Unbound steady-state', y=1.05)
-        # ax1.set_xlabel('Bins')
-
-        # ax2.plot(range(self.bins), self.ss[self.bins:2 * self.bins], c='b', label='SS')
-        # # ax2.plot(range(self.bins), self.PDF_bound, c='k', label='PDF')
-        # ax2.set_title('Bound steady-state', y=1.05)
-        # ax2.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        # # ax2.legend()
-        # ax2.set_xlabel('Bins')
-        # aesthetics.pretty_plot(fig)
-        # plt.show()
-        
-        # fig = plt.figure(figsize=(6*1.2, 6))
-        # gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
-        # ax1 = plt.subplot(gs[0, 0])
-        # ax1.plot(range(self.bins), self.ss[0:self.bins], c='r')
-        # ax1.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
-        # ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        # ax1.set_xlabel('Dihedral angle (rad)')
-        # ax1.set_ylabel(r'$p^\prime_{0}$ (probability)')
-        # aesthetics.paper_plot(fig, scientific=False)
-        # plt.show()
-        
-        # fig = plt.figure(figsize=(6*1.2, 6))
-        # gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
-        # ax2 = plt.subplot(gs[0, 0])
-        # ax2.plot(range(self.bins), self.ss[self.bins:2 * self.bins], c='b')
-        # ax2.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
-        # ax2.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        # ax2.set_xlabel('Dihedral angle (rad)')
-        # ax2.set_ylabel(r'$p^\prime_{1}$ (probability)')
-        # aesthetics.paper_plot(fig, scientific=False)
-        # plt.show()
-
-        fig = plt.figure(figsize=(6*1.2, 6))
+        fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
         ax1.plot(range(self.bins), self.ss[0:self.bins], c=self.unbound_clr)
-        ax1.plot(range(self.bins), self.ss[self.bins:2*self.bins], c=self.bound_clr)
-        ax1.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
+        ax1.plot(range(self.bins), self.ss[self.bins:2 * self.bins], c=self.bound_clr)
+        ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
         ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$p$ (probability)')
@@ -138,103 +58,84 @@ class simulation(object):
         This function plots the intrasurface flux sum and labels the graph with the attributions of the
         simulation object.
         """
-        # fig = plt.figure(figsize=(6*1.2, 6))
-        # gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
-        # ax1 = plt.subplot(gs[0, 0])
-        # ax1.plot(range(self.bins), self.flux_u, c='r', label='U')
-        # ax1.plot(range(self.bins), self.flux_b, c='b', label='B')
-        # ax1.plot(range(self.bins), self.flux_b + self.flux_u, c='k', label='U+B')
-        # ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        # # ax1.legend()
-        # ax1.set_xlabel('Bins')
-        # ax1.set_ylabel('Intrasurface flux $J$ (cycle second$^{-1}$)')
-        # ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycles/second'.format(np.mean(self.flux_u + self.flux_b), sc.stats.sem(self.flux_u + self.flux_b)))
-        # if self.name is not None:
-        #     ax1.set_title(self.name)
-        # print('C_intrasurface = \t{0:6.2e} second**-1'.format(self.C_intrasurface))
-        # print('D = \t\t\t{0:6.2e} degrees**2 second**-1'.format(self.D))
-        # print('C_intersurface = \t{0:6.2e} mol**-1 second**-1'.format(self.C_intersurface))
-        # print('Catalytic rate = \t{} second**-1'.format(self.catalytic_rate))
-        # print('ATP concentration = \t{} M'.format(self.cATP))
-        # print('Time step = \t\t{0:6.2e} second'.format(self.dt))
-        # print('Intrasurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_u + self.flux_b),
-        # sc.stats.sem(self.flux_u + self.flux_b)))
-        # ax1.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
-        # ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        # ax1.set_xlabel('Dihedral angle (rad)')
-        # ax1.set_ylabel('Flux $J$ (cycle second$^{-1}$)')
-        # ax1.set_title('')
-        # # aesthetics.pretty_plot(fig)
-        # aesthetics.paper_plot(fig, scientific=False)
-        # plt.show()
 
-        fig = plt.figure(figsize=(6*1.2, 6))
-        gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
-        ax1 = plt.subplot(gs[0, 0])
-        ax1.plot(range(self.bins), self.flux_u, c=self.unbound_clr, label='U')
-        ax1.plot(range(self.bins), self.flux_b, c=self.bound_clr, label='B')
-        ax1.plot(range(self.bins), self.flux_b + self.flux_u, c='k', label='U+B')
-        ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        # ax1.set_ylabel('Intrasurface flux $J$ (cycle second$^{-1}$)')
-        ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_u + self.flux_b), np.std(self.flux_u + self.flux_b)))
-        # if self.name is not None:
-        #     ax1.set_title(self.name)
         print('C_intrasurface = \t{0:6.2e} second**-1'.format(self.C_intrasurface))
         print('D = \t\t\t{0:6.2e} degrees**2 second**-1'.format(self.D))
         print('C_intersurface = \t{0:6.2e} mol**-1 second**-1'.format(self.C_intersurface))
         print('Catalytic rate = \t{} second**-1'.format(self.catalytic_rate))
         print('ATP concentration = \t{} M'.format(self.cATP))
         print('Time step = \t\t{0:6.2e} second'.format(self.dt))
-        # print('Intrasurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_u + self.flux_b),
-        # sc.stats.sem(self.flux_u + self.flux_b)))
-        ax1.set_xticks([0, self.bins/4, self.bins/2, 3*self.bins/4 , self.bins])
+        print('Intrasurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_u + self.flux_b),
+                                                                                     np.std(
+                                                                                         self.flux_u + self.flux_b)))
+        fig = plt.figure(figsize=(6 * 1.2, 6))
+        gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
+        ax1 = plt.subplot(gs[0, 0])
+        ax1.plot(range(self.bins), self.flux_u, c=self.unbound_clr, label='U')
+        ax1.plot(range(self.bins), self.flux_b, c=self.bound_clr, label='B')
+        ax1.plot(range(self.bins), self.flux_b + self.flux_u, c='k', label='U+B')
+        ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
+        ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_u + self.flux_b),
+                                                                              np.std(self.flux_u + self.flux_b)))
+
+        ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
         ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel('Flux $J$ (cycle second$^{-1}$)')
-        # ax1.set_title('')
-        # # aesthetics.pretty_plot(fig)
         aesthetics.paper_plot(fig, scientific=False)
-        # plt.show()
-
-
-
-    def plot_load(self):
-        fig = plt.figure(figsize=(12, 12))
-        gs = GridSpec(2, 2, wspace=0.4, hspace=0.5)
-        ax1 = plt.subplot(gs[0, 0])
-        ax2 = plt.subplot(gs[0, 1])
-        ax1.plot(range(self.bins), self.unbound, c=self.unbound_clr)
-        ax1.plot(range(self.bins), [self.unbound[i] + self.load_function(i) for i in range(self.bins)], c='k', alpha=0.9)
-        ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        ax1.set_title('Unbound', y=1.05)
-
-        ax2.plot(range(self.bins), self.bound, c=self.bound_clr, label='SS')
-        ax2.plot(range(self.bins), [self.bound[i] + self.load_function(i) for i in range(self.bins)], c='k', alpha=0.9)
-        ax2.set_title('Bound', y=1.05)
-        ax2.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        aesthetics.pretty_plot(fig)
         plt.show()
 
-    def plot_load_extrapolation(self):
-        fig = plt.figure(figsize=(6*1.2, 6))
+    def plot_load(self):
+        """
+        This function plots the unbound and bound energy surfaces with a constant added load.
+        :return:
+        """
+
+        fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
 
-        # extended_u = np.tile(self.unbound, tile_number)
-        # extended_b = np.tile(self.bound, tile_number)
+        ax1.plot(np.arange(self.bins),
+                 [self.unbound[i] + self.load_function(i) for i in np.arange(self.bins)],
+                 c='k', ls='--', lw=2)
+        ax1.plot(np.arange(self.bins), self.unbound, c=self.unbound_clr)
+        ax1.plot(np.arange(self.bins), [self.bound[i] + self.load_function(i) for i in
+                                                       np.arange(self.bins)],
+                 c='k', ls='--', lw=2)
+        ax1.plot(np.arange(self.bins), self.bound, c=self.bound_clr)
+
+        ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
+        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xlabel('Dihedral angle (rad)')
+        ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
+        aesthetics.paper_plot(fig, scientific=False)
+        plt.show()
+
+    def plot_load_extrapolation(self):
+        """
+        This function plots the unbound and bound energy surfaces with a constant added load over a larger range
+        to check the continuity of the load function is different than the ordinary PBCs on the energy surfaces.
+        :return:
+        """
+        fig = plt.figure(figsize=(6 * 1.2, 6))
+        gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
+        ax1 = plt.subplot(gs[0, 0])
+
         extended_u = np.concatenate((self.unbound, self.unbound, self.unbound))
         extended_b = np.concatenate((self.bound, self.bound, self.bound))
 
-        ax1.plot(np.arange(-1*self.bins/2, self.bins + self.bins/2),
-         [extended_u[i] + self.load_function(i) for i in np.arange(-1*self.bins/2, self.bins + self.bins/2)], 
-         c='k', ls='--', lw=2)
+        ax1.plot(np.arange(-1 * self.bins / 2, self.bins + self.bins / 2),
+                 [extended_u[i] + self.load_function(i) for i in
+                  np.arange(-1 * self.bins / 2, self.bins + self.bins / 2)],
+                 c='k', ls='--', lw=2)
         ax1.plot(np.arange(self.bins), self.unbound, c=self.unbound_clr)
-        ax1.plot(np.arange(-1*self.bins/2, self.bins + self.bins/2),
-         [extended_b[i] + self.load_function(i) for i in np.arange(-1*self.bins/2, self.bins + self.bins/2)], 
-         c='k', ls='--', lw=2)
+        ax1.plot(np.arange(-1 * self.bins / 2, self.bins + self.bins / 2),
+                 [extended_b[i] + self.load_function(i) for i in
+                  np.arange(-1 * self.bins / 2, self.bins + self.bins / 2)],
+                 c='k', ls='--', lw=2)
         ax1.plot(np.arange(self.bins), self.bound, c=self.bound_clr)
-        
-        ax1.set_xticks([-1*self.bins/2, 0, self.bins/2, self.bins, self.bins + self.bins/2])
+
+        ax1.set_xticks([-1 * self.bins / 2, 0, self.bins / 2, self.bins, self.bins + self.bins / 2])
         ax1.set_xticklabels([r'$-\pi$', '$0$', r'$\pi$', r'$2\pi$', r'$3\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
@@ -272,6 +173,7 @@ class simulation(object):
         """
         This function calculates intrasurface rates using the energy difference between adjacent bins.
         """
+
         forward_rates = self.C_intrasurface * np.exp(-1 * np.diff(energy_surface) / float(2 * self.kT))
         backward_rates = self.C_intrasurface * np.exp(+1 * np.diff(energy_surface) / float(2 * self.kT))
         rate_matrix = np.zeros((self.bins, self.bins))
@@ -317,6 +219,7 @@ class simulation(object):
         For bound to unbound, the rates are calculated according to the energy difference and the catalytic rate.
         For unbound to bound, the rates depend on the prefactor and the concentration of ATP.
         """
+
         bu_rm = np.empty((self.bins))
         ub_rm = np.empty((self.bins))
         for i in range(self.bins):
@@ -330,6 +233,7 @@ class simulation(object):
         """
         We take the four rate matrices (two single surface and two intersurface) and inject them into the transition matrix.
         """
+
         if self.extra_precision:
             tm = np.zeros((2 * self.bins, 2 * self.bins), dtype=np.longdouble)
         else:
@@ -347,6 +251,7 @@ class simulation(object):
         The transition matrix is scaled by `dt` so all rows sum to 1 and all elements are less than 1.
         This should not use `self` subobjects, except for `dt` because we are mutating the variables.
         """
+
         row_sums = tm.sum(axis=1, keepdims=True)
         maximum_row_sum = int(math.log10(max(row_sums)))
         self.dt = 10 ** -(maximum_row_sum + 1)
@@ -363,6 +268,7 @@ class simulation(object):
         The eigenvectors and eigenvalues of the transition matrix are computed and the steady-state population is
         assigned to the eigenvector with an eigenvalue of 1.
         """
+
         self.eigenvalues, eigenvectors = np.linalg.eig(np.transpose(self.tm))
         ss = abs(eigenvectors[:, self.eigenvalues.argmax()].astype(float))
         self.ss = ss / np.sum(ss)
@@ -374,6 +280,7 @@ class simulation(object):
         The steady-state distribution is a parameter so this function can be run with either the eigenvector-derived
         steady-state distribution or the interated steady-state distribution.
         """
+
         flux_u = np.empty((self.bins))
         flux_b = np.empty((self.bins))
         for i in range(self.bins):
@@ -403,28 +310,29 @@ class simulation(object):
         The new population can be set to a normalized random distribution or the eigenvector-derived
         steady-state distribution.
         """
+
         print('Running iterative method with {} iterations'.format(self.iterations))
         # Instead of starting with a random population, I'm going to start with a population spike 
         # in the first bin.
         # population = np.random.rand(2 * self.bins)
-        population = np.zeros((2 * self.bins))
 
         def gaussian(x, mu, sig):
             return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
-       
+
         def calculate_msd(population, mu):
             msd = []
             for position in range(2 * self.bins):
-                msd.append(population[position] * ((position - mu)*(360 / self.bins))**2)
+                msd.append(population[position] * ((position - mu) * (360 / self.bins)) ** 2)
             return np.sum(msd)
 
+        population = np.zeros((2 * self.bins))
         population = np.array([gaussian(i, self.bins / 2, 2) for i in range(2 * self.bins)])
         row_sums = population.sum(axis=0, keepdims=True)
         population = population / row_sums
         # Now, keep track of the center of mass of the population.
         self.iterative_com = []
         self.iterative_com.append(sc.ndimage.measurements.center_of_mass(population))
-        fig = plt.figure(figsize=(6*1.2, 6))
+        fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
 
@@ -433,7 +341,7 @@ class simulation(object):
         new_population = np.copy(population)
         self.msd = np.empty((self.iterations + 1))
         self.msd[0] = calculate_msd(population, self.bins / 2)
-        
+
         for i in range(self.iterations):
             new_population = np.dot(new_population, self.tm)
             self.msd[i + 1] = calculate_msd(new_population, self.bins / 2)
@@ -494,7 +402,7 @@ class simulation(object):
 
             except IOError:
                 print('Cannot read {} from {}.'.format(self.name, self.dir))
-            
+
             cmap = sns.color_palette("Paired", 10)
             self.unbound_clr = cmap[6]
             self.bound_clr = cmap[7]
@@ -619,13 +527,13 @@ class simulation(object):
         These values are assigned to a new object, unless overridden later.
         """
         # Model parameters
-        self.kT = 0.6                            # RT = 0.6 kcal per mol
+        self.kT = 0.6  # RT = 0.6 kcal per mol
         # The butane-dervied D value is 3 * 10 ** 15, but we've now shown that
         # a lower value can be safely used without changing the results much.
         # self.D = 3 * 10 ** 15                    # degree per second
         self.D = 3 * 10 ** 12
-        self.cATP = 2 * 10 ** -3                 # molar
-        self.C_intrasurface = None               # determined later
+        self.cATP = 2 * 10 ** -3  # molar
+        self.C_intrasurface = None  # determined later
         # These are just the PKA values, so now we should set the variables for each
         # protein system separately.
         # self.C_intersurface = 0.24 * 10 ** 6     # per mole per second
@@ -636,21 +544,21 @@ class simulation(object):
         self.dir = None
         self.data_source = data_source
         if self.data_source == 'pka_md_data':
-            self.C_intersurface = 0.24 * 10 ** 6     # per mole per second
-            self.offset_factor = 6.0                 # kcal per mol
-            self.catalytic_rate = 140                # per second
+            self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
+            self.offset_factor = 6.0  # kcal per mol
+            self.catalytic_rate = 140  # per second
         elif self.data_source == 'pka_reversed':
-            self.C_intersurface = 0.24 * 10 ** 6     # per mole per second
-            self.offset_factor = 6.0                 # kcal per mol
-            self.catalytic_rate = 140                # per second
+            self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
+            self.offset_factor = 6.0  # kcal per mol
+            self.catalytic_rate = 140  # per second
         elif self.data_source == 'adk_md_data':
-            self.C_intersurface = 10 ** 6            # per mole per second
-            self.offset_factor = 5.7                 # kcal per mol
-            self.catalytic_rate = 312                # per second
+            self.C_intersurface = 10 ** 6  # per mole per second
+            self.offset_factor = 5.7  # kcal per mol
+            self.catalytic_rate = 312  # per second
         elif self.data_source == 'hiv_md_data':
-            self.C_intersurface = 10 ** 9            # per mole per second
-            self.offset_factor = 4.5                 # kcal per mol
-            self.catalytic_rate = 0.3                # per second
+            self.C_intersurface = 10 ** 9  # per mole per second
+            self.offset_factor = 4.5  # kcal per mol
+            self.catalytic_rate = 0.3  # per second
         else:
             print('No data source; no values for C, offset, and catalytic rate')
 
@@ -660,6 +568,6 @@ class simulation(object):
         self.extra_precision = False
         self.load = False
         if self.load:
-            self.load_slope = self.bins         # kcal per mol per (2 * pi) radians
+            self.load_slope = self.bins  # kcal per mol per (2 * pi) radians
         else:
             self.load_slope = 0
