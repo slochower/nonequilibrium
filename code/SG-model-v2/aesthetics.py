@@ -159,7 +159,7 @@ def pretty_plot(fig, adjustment=0, scientific=True):
                     x1 + adjustment,
                     ))
 
-def paper_plot(fig, adjustment=0, scientific=True):
+def paper_plot(fig, adjustment=0, scientific=False):
     sns.set()
     # Increase font size
     sns.set_context("notebook", font_scale=2, rc={"lines.linewidth": 5})
@@ -175,8 +175,8 @@ def paper_plot(fig, adjustment=0, scientific=True):
         r'\usepackage{graphicx}',
         r'\usepackage{relsize}',
         r'\newcommand{\bigpi}{\scalebox{5}{\ensuremath{\pi}}}'
-       # r'\usepackage{upgreek}',
     ]
+
     for ax in fig.axes:
         # Increase padding
         ax.tick_params(which='major', direction='out', length=10, pad=10)
@@ -210,6 +210,3 @@ def paper_plot(fig, adjustment=0, scientific=True):
         # Make axes thicker
         for axis in ['top','bottom','left','right']:
             ax.spines[axis].set_linewidth(2)
-
-
-

@@ -47,3 +47,6 @@ md-data/
 
 # Files starting with tilde (MS Word)
 ~*
+
+# pycharm directory
+.idea

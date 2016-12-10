@@ -46,7 +46,7 @@ class equilibrium(unittest.TestCase):
         this.bound /= np.sum(this.bound)
         this.catalytic_rate = 0
         this.offset_factor = 0  # Both surfaces should have equal probability
-        this.cATP = 1
+        this.cSubstrate = 1
 
         this.ss[bins:] /= this.ss[bins:]
 

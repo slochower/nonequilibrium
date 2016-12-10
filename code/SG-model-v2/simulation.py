@@ -4,21 +4,39 @@ This module contains the code to calculate probabilty flux given two equilibrium
 population distributions.
 """
 
-from __future__ import division, print_function
 import math as math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
-from matplotlib.gridspec import GridSpec
 from scipy.ndimage.filters import gaussian_filter
+from matplotlib.gridspec import GridSpec
 import scipy as sc
 import aesthetics
 import seaborn as sns
 
 
 class simulation(object):
-    def plot_energy(self):
+    def plot_input(self, save=False, filename=None):
+        """
+        This function plots the unbound and bound input histograms associated with a simulation object.
+        """
+
+        fig = plt.figure(figsize=(6 * 1.2, 6))
+        gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
+        ax1 = plt.subplot(gs[0, 0])
+        ax1.plot(range(self.bins), self.unbound_population, c=self.unbound_clr)
+        ax1.plot(range(self.bins), self.bound_population, c=self.bound_clr)
+        ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
+        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi{}$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xlabel('Dihedral angle (rad)')
+        ax1.set_ylabel(r'$p$ (input population)')
+        aesthetics.paper_plot(fig, scientific=False)
+        if save:
+            # plt.subplots_adjust(bottom=0.2, left=0.25)
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
+            
+    def plot_energy(self, save=False, filename=None):
         """
         This function plots the unbound and bound energies associated with a simulation object.
         """
@@ -33,9 +51,11 @@ class simulation(object):
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
-        plt.show()
+        if save:
+            # plt.subplots_adjust(bottom=0.2, left=0.25)
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
-    def plot_ss(self):
+    def plot_ss(self, save=False, filename=None):
         """
         This function plots the steady-state distribution and Boltzmann PDF associated with a simulation object.
         By default, this will plot the eigenvector-derived steady-state distribution.
@@ -51,23 +71,27 @@ class simulation(object):
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$p$ (probability)')
         aesthetics.paper_plot(fig, scientific=False)
-        plt.show()
+        if save:
+            # plt.subplots_adjust(bottom=0.2, left=0.25)
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
-    def plot_flux(self, label=None):
+    def plot_flux(self, save=False, filename=None):
         """
         This function plots the intrasurface flux sum and labels the graph with the attributions of the
         simulation object.
         """
 
-        print('C_intrasurface = \t{0:6.2e} second**-1'.format(self.C_intrasurface))
+        print('C = \t{0:6.2e} second**-1'.format(self.C_intrasurface))
         print('D = \t\t\t{0:6.2e} degrees**2 second**-1'.format(self.D))
         print('C_intersurface = \t{0:6.2e} mol**-1 second**-1'.format(self.C_intersurface))
         print('Catalytic rate = \t{} second**-1'.format(self.catalytic_rate))
-        print('ATP concentration = \t{} M'.format(self.cATP))
+        print('Substrate concentration = \t{} M'.format(self.cSubstrate))
         print('Time step = \t\t{0:6.2e} second'.format(self.dt))
         print('Intrasurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_u + self.flux_b),
                                                                                      np.std(
                                                                                          self.flux_u + self.flux_b)))
+        print('Intersurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_ub),
+                                                                                     np.std(self.flux_ub)))
         fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
@@ -77,15 +101,16 @@ class simulation(object):
         ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
         ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_u + self.flux_b),
                                                                               np.std(self.flux_u + self.flux_b)))
-
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
         ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel('Flux $J$ (cycle second$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
-        plt.show()
+        if save:
+            # plt.subplots_adjust(bottom=0.2, left=0.25)
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
-    def plot_load(self):
+    def plot_load(self, save=False, filename=None):
         """
         This function plots the unbound and bound energy surfaces with a constant added load.
         :return:
@@ -109,9 +134,12 @@ class simulation(object):
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
-        plt.show()
+        if save:
+            # plt.subplots_adjust(bottom=0.2, left=0.25)
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
-    def plot_load_extrapolation(self):
+
+    def plot_load_extrapolation(self, save=False, filename=None):
         """
         This function plots the unbound and bound energy surfaces with a constant added load over a larger range
         to check the continuity of the load function is different than the ordinary PBCs on the energy surfaces.
@@ -140,7 +168,9 @@ class simulation(object):
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
-        plt.show()
+        if save:
+            # plt.subplots_adjust(bottom=0.2, left=0.25)
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
     def data_to_energy(self, histogram):
         """
@@ -226,7 +256,7 @@ class simulation(object):
             bu_rm[i] = (self.C_intersurface *
                         np.exp(-1 * (unbound_surface[i] - bound_surface[i]) / float(self.kT)) +
                         self.catalytic_rate)
-            ub_rm[i] = self.C_intersurface * self.cATP
+            ub_rm[i] = self.C_intersurface * self.cSubstrate
         return ub_rm, bu_rm
 
     def compose_tm(self, u_rm, b_rm, ub_rm, bu_rm):
@@ -283,6 +313,7 @@ class simulation(object):
 
         flux_u = np.empty((self.bins))
         flux_b = np.empty((self.bins))
+        flux_ub = np.empty((self.bins))
         for i in range(self.bins):
             if i == 0:
                 flux_u[i] = -1 * (- ss[i] * tm[i][i + 1] / self.dt + ss[i + 1] * tm[i + 1][i] / self.dt)
@@ -298,8 +329,12 @@ class simulation(object):
                     - ss[i] * tm[i][self.bins] / self.dt + ss[self.bins] * tm[self.bins][i] / self.dt)
             else:
                 flux_b[i - self.bins] = -1 * (- ss[i] * tm[i][i + 1] / self.dt + ss[i + 1] * tm[i + 1][i] / self.dt)
+        for i in range(self.bins):
+            flux_ub = -1 * (
+                            - ss[i] * tm[i][i + self.bins] / self.dt + ss[i + self.bins] * tm[i + self.bins][i] / self.dt)
         self.flux_u = flux_u
         self.flux_b = flux_b
+        self.flux_ub = flux_ub
         return
 
     def iterate(self, iterations=None):
@@ -355,7 +390,7 @@ class simulation(object):
         aesthetics.paper_plot(fig, scientific=False)
         return
 
-    def simulate(self, plot=False, debug=False, user_energies=False, catalysis=True):
+    def simulate(self, plot=False, user_energies=False, catalysis=True):
         """
         Now this function takes in a file(name) and determins the energy surfaces automatically,
         so I don't forget to do it in an interactive session.
@@ -379,10 +414,8 @@ class simulation(object):
                                                       '_chi_pop_hist_ref.txt',
                                                       delimiter=',',
                                                       skip_header=1)
-
             except IOError:
                 print('Cannot read {} from {}.'.format(self.name, self.dir))
-
             cmap = sns.color_palette("Paired", 10)
             self.unbound_clr = cmap[6]
             self.bound_clr = cmap[7]
@@ -483,40 +516,18 @@ class simulation(object):
         self.calculate_boltzmann()
         self.calculate_flux(self.ss, self.tm)
         if plot:
+            self.plot_input()
             if not self.load:
                 self.plot_energy()
             else:
                 self.plot_load()
             self.plot_ss()
-            self.plot_flux(label='Eigenvector method')
+            self.plot_flux()
         if self.iterations != 0:
             self.iterate(self.iterations)
             self.calculate_flux(self.iterative_ss, self.tm)
             if plot:
-                self.plot_flux(label='Iterative method')
-        if debug:
-            self.parameters = {
-                'C_intersurface': self.C_intersurface,
-                'C_intrasurface': self.C_intrasurface,
-                'kT': self.kT,
-                'cATP': self.cATP,
-                'offset_factor': self.offset_factor,
-                'catalytic rate': self.catalytic_rate,
-                'iterations': self.iterations,
-                'load': self.load,
-                'load_slope': self.load_slope,
-                'bins': self.bins,
-                'steady_state': self.ss,
-                'flux': self.flux_u + self.flux_b,
-                'unbound_energy': self.unbound,
-                'bound_energy': self.bound,
-                'transition_matrix': self.tm,
-                'dt': self.dt,
-                'eigenvalues': self.eigenvalues,
-                'PDF_unbound': self.PDF_unbound,
-                'PDF_bound': self.PDF_bound,
-                'extra_precision': self.extra_precision
-            }
+                self.plot_flux()
         return
 
     def load_function(self, x):
@@ -532,33 +543,32 @@ class simulation(object):
         # a lower value can be safely used without changing the results much.
         # self.D = 3 * 10 ** 15                    # degree per second
         self.D = 3 * 10 ** 12
-        self.cATP = 2 * 10 ** -3  # molar
-        self.C_intrasurface = None  # determined later
-        # These are just the PKA values, so now we should set the variables for each
-        # protein system separately.
-        # self.C_intersurface = 0.24 * 10 ** 6     # per mole per second
-        # self.offset_factor = 6.0                # kcal per mol
-        # self.catalytic_rate = 140              # per second
+        # cATP should go to cSubstrate or something... 
         self.iterations = 0
         # Implementation parameters
         self.dir = None
         self.data_source = data_source
-        if self.data_source == 'pka_md_data':
+        if self.data_source == 'pka_md_data' or self.data_source == 'pka_reversed':
             self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
             self.offset_factor = 6.0  # kcal per mol
             self.catalytic_rate = 140  # per second
-        elif self.data_source == 'pka_reversed':
-            self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
-            self.offset_factor = 6.0  # kcal per mol
-            self.catalytic_rate = 140  # per second
+            self.cSubstrate = 2 * 10 ** -3 # ATP concentration (M)
         elif self.data_source == 'adk_md_data':
             self.C_intersurface = 10 ** 6  # per mole per second
             self.offset_factor = 5.7  # kcal per mol
             self.catalytic_rate = 312  # per second
+            # Let's say ATP concentration = 9 * 10**-3 M and AMP concentration = 2.8 * 10**-4 M
+            # Absolute metabolite concentrations and implied enzyme active site occupancy in Escherichia coli (2009),
+            # Nat Chem Biol
+            self.cSubstrate = 2.5 * 10 ** -6   # ATP.AMP concentration (M) as a single concentration
         elif self.data_source == 'hiv_md_data':
-            self.C_intersurface = 10 ** 9  # per mole per second
+            self.C_intersurface = 10 ** 6  # per mole per second
             self.offset_factor = 4.5  # kcal per mol
             self.catalytic_rate = 0.3  # per second
+            self.cSubstrate = 2 * 10 ** -3 # Gag concentration (M)
+
+        elif self.data_source == 'manual':
+            print('Using manual parameters, specify C, offset, and catalytic rate.')
         else:
             print('No data source; no values for C, offset, and catalytic rate')
 
