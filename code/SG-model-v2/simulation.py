@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This module contains the code to calculate probabilty flux given two equilibrium
+This module contains the code to calculate probability flux given two equilibrium
 population distributions.
 """
 
@@ -33,7 +33,6 @@ class simulation(object):
         ax1.set_ylabel(r'$p$ (input population)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
-            # plt.subplots_adjust(bottom=0.2, left=0.25)
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
             
     def plot_energy(self, save=False, filename=None):
@@ -52,7 +51,6 @@ class simulation(object):
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
-            # plt.subplots_adjust(bottom=0.2, left=0.25)
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
     def plot_ss(self, save=False, filename=None):
@@ -72,7 +70,6 @@ class simulation(object):
         ax1.set_ylabel(r'$p$ (probability)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
-            # plt.subplots_adjust(bottom=0.2, left=0.25)
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
     def plot_flux(self, save=False, filename=None):
@@ -80,18 +77,21 @@ class simulation(object):
         This function plots the intrasurface flux sum and labels the graph with the attributions of the
         simulation object.
         """
-
-        print('C = \t{0:6.2e} second**-1'.format(self.C_intrasurface))
-        print('D = \t\t\t{0:6.2e} degrees**2 second**-1'.format(self.D))
-        print('C_intersurface = \t{0:6.2e} mol**-1 second**-1'.format(self.C_intersurface))
-        print('Catalytic rate = \t{} second**-1'.format(self.catalytic_rate))
-        print('Substrate concentration = \t{} M'.format(self.cSubstrate))
-        print('Time step = \t\t{0:6.2e} second'.format(self.dt))
-        print('Intrasurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_u + self.flux_b),
-                                                                                     np.std(
-                                                                                         self.flux_u + self.flux_b)))
-        print('Intersurface flux = \t{0:0.2f} +/- {1:0.2f} cycles second**-1'.format(np.mean(self.flux_ub),
-                                                                                     np.std(self.flux_ub)))
+        print('{:<25} {:<+10.2e} {:<10}'.format('C', self.C_intrasurface, 'second**-1'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('D', self.D, 'degrees**2 second**-1'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('k_{cat}', self.catalytic_rate, 'second**-1'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('[S]', self.cSubstrate, 'M'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('dt', self.dt, 'second**-1'))
+        print('{:<25} {:<10} {:<10}'.format('-----------------', '---------', '---------'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('Intrasurface flux', np.mean(self.flux_u + self.flux_b),
+                                               'cycle second**-1'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('Intersurface flux', np.mean(self.flux_ub),
+                                               'cycle second**-1'))
+        if self.load:
+            print('{:<25} {:<10} {:<10}'.format('-----------------', '---------', '---------'))
+            print('{:<25} {:<+10.2e} {:<10}'.format('Applied load', self.load_slope, 'kcal mol**-1 cycle**-1'))
+            print('{:<25} {:<+10.2e} {:<10}'.format('Power', self.load_slope * np.mean(self.flux_u + self.flux_b),
+                                                   'kcal mol**-1 second**-1'))
         fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
@@ -107,7 +107,6 @@ class simulation(object):
         ax1.set_ylabel('Flux $J$ (cycle second$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
-            # plt.subplots_adjust(bottom=0.2, left=0.25)
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
     def plot_load(self, save=False, filename=None):
@@ -135,7 +134,6 @@ class simulation(object):
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
-            # plt.subplots_adjust(bottom=0.2, left=0.25)
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
 
@@ -169,7 +167,6 @@ class simulation(object):
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
-            # plt.subplots_adjust(bottom=0.2, left=0.25)
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
     def data_to_energy(self, histogram):
@@ -220,14 +217,14 @@ class simulation(object):
         """
         This function calculates intrasurface rates using the energy difference between adjacent bins.
         """
-
-        surface_with_load = [energy_surface[i] + self.load_function(i) for i in range(self.bins)]
+        surface_with_load = np.hstack(([energy_surface[i] + self.load_function(i) for i in range(self.bins)]))
         # This should handle the interior elements just fine.
         self.forward_rates = self.C_intrasurface * \
                              np.exp(-1 * np.diff(surface_with_load) / float(2 * self.kT))
         self.backward_rates = self.C_intrasurface * \
                               np.exp(+1 * np.diff(surface_with_load) / float(2 * self.kT))
         rate_matrix = np.zeros((self.bins, self.bins))
+        
         for i in range(self.bins - 1):
             rate_matrix[i][i + 1] = self.forward_rates[i]
             rate_matrix[i + 1][i] = self.backward_rates[i]
@@ -264,10 +261,7 @@ class simulation(object):
         We take the four rate matrices (two single surface and two intersurface) and inject them into the transition matrix.
         """
 
-        if self.extra_precision:
-            tm = np.zeros((2 * self.bins, 2 * self.bins), dtype=np.longdouble)
-        else:
-            tm = np.zeros((2 * self.bins, 2 * self.bins))
+        tm = np.zeros((2 * self.bins, 2 * self.bins))
         tm[0:self.bins, 0:self.bins] = u_rm
         tm[self.bins:2 * self.bins, self.bins:2 * self.bins] = b_rm
         for i in range(self.bins):
@@ -420,7 +414,6 @@ class simulation(object):
             self.unbound_clr = cmap[6]
             self.bound_clr = cmap[7]
 
-
         elif self.data_source == 'pka_reversed':
             self.dir = '../../md-data/pka-md-reversed-and-averaged'
             try:
@@ -439,7 +432,6 @@ class simulation(object):
             cmap = sns.color_palette("Paired", 10)
             self.unbound_clr = cmap[6]
             self.bound_clr = cmap[7]
-
 
         elif self.data_source == 'adk_md_data':
             self.dir = '../../md-data/adenylate-kinase'
@@ -462,7 +454,6 @@ class simulation(object):
             self.unbound_clr = cmap[0]
             self.bound_clr = cmap[1]
 
-
         elif self.data_source == 'hiv_md_data':
             self.dir = '../../md-data/hiv-protease'
             try:
@@ -483,7 +474,6 @@ class simulation(object):
             cmap = sns.color_palette("Paired", 10)
             self.unbound_clr = cmap[2]
             self.bound_clr = cmap[3]
-
 
         elif self.data_source == 'manual':
             # Populations are supplied manually.
@@ -575,7 +565,6 @@ class simulation(object):
         self.name = None
         self.unbound_population = []
         self.bound_population = []
-        self.extra_precision = False
         self.load = False
         if self.load:
             self.load_slope = self.bins  # kcal per mol per (2 * pi) radians

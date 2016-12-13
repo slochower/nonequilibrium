@@ -1,5 +1,6 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
 import numpy as np
@@ -210,3 +211,16 @@ def paper_plot(fig, adjustment=0, scientific=False):
         # Make axes thicker
         for axis in ['top','bottom','left','right']:
             ax.spines[axis].set_linewidth(2)
+
+def generic_plot(x, y, xlabel=None, ylabel=None, scientific=False):
+    fig = plt.figure(figsize=(6 * 1.2, 6))
+    gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
+    ax = plt.subplot(gs[0, 0])
+    ax.plot(x, y, 'o', markersize=8, markeredgecolor='k', markeredgewidth=0.8, alpha=0.5, mfc='b')
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    if scientific:
+        pretty_label(ax)
+    paper_plot(fig)
