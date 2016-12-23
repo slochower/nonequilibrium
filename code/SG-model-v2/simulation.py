@@ -77,7 +77,7 @@ class simulation(object):
         This function plots the intrasurface flux sum and labels the graph with the attributions of the
         simulation object.
         """
-        print('{:<25} {:<+10.2e} {:<10}'.format('C', self.C_intrasurface, 'second**-1'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('C', self.C_intersurface, 'second**-1'))
         print('{:<25} {:<+10.2e} {:<10}'.format('D', self.D, 'degrees**2 second**-1'))
         print('{:<25} {:<+10.2e} {:<10}'.format('k_{cat}', self.catalytic_rate, 'second**-1'))
         print('{:<25} {:<+10.2e} {:<10}'.format('[S]', self.cSubstrate, 'M'))
@@ -108,6 +108,26 @@ class simulation(object):
         aesthetics.paper_plot(fig, scientific=False)
         if save:
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
+
+    def plot_intersurface_flux(self, save=False, filename=None):
+        """
+        This function plots the intersurface flux sum.
+        """
+        fig = plt.figure(figsize=(6 * 1.2, 6))
+        gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
+        ax1 = plt.subplot(gs[0, 0])
+        ax1.plot(range(self.bins), self.flux_ub + self.flux_u, c='k', label='U+B')
+        ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
+        ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_ub),
+                                                                              np.std(self.flux_ub)))
+        ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
+        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xlabel('Dihedral angle (rad)')
+        ax1.set_ylabel(r'Flux $J_{0 \leftrightarrow 1}$ (cycle second$^{-1}$)')
+        aesthetics.paper_plot(fig, scientific=False)
+        if save:
+            plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
+
 
     def plot_load(self, save=False, filename=None):
         """
@@ -422,9 +442,9 @@ class simulation(object):
                                                         delimiter=',',
                                                         skip_header=1)
                 self.bound_population = np.genfromtxt(self.dir + '/atpmg/' + self.name +
-                                                      '_chi_pop_hist_ref.txt',
-                                                      delimiter=',',
-                                                      skip_header=1)
+                                                    '_chi_pop_hist_ref.txt',
+                                                    delimiter=',',
+                                                    skip_header=1)
 
             except IOError:
                 print('Cannot read {} from {}.'.format(self.name, self.dir))
@@ -513,6 +533,7 @@ class simulation(object):
                 self.plot_load()
             self.plot_ss()
             self.plot_flux()
+            self.plot_intersurface_flux()
         if self.iterations != 0:
             self.iterate(self.iterations)
             self.calculate_flux(self.iterative_ss, self.tm)
@@ -529,7 +550,7 @@ class simulation(object):
         """
         # Model parameters
         self.kT = 0.6  # RT = 0.6 kcal per mol
-        # The butane-dervied D value is 3 * 10 ** 15, but we've now shown that
+        # The butane-derived D value is 3 * 10 ** 15, but we've now shown that
         # a lower value can be safely used without changing the results much.
         # self.D = 3 * 10 ** 15                    # degree per second
         self.D = 3 * 10 ** 12
@@ -548,7 +569,8 @@ class simulation(object):
             self.offset_factor = 5.7  # kcal per mol
             self.catalytic_rate = 312  # per second
             # Let's say ATP concentration = 9 * 10**-3 M and AMP concentration = 2.8 * 10**-4 M
-            # Absolute metabolite concentrations and implied enzyme active site occupancy in Escherichia coli (2009),
+            # Absolute metabolite concentrations and implied enzyme active site occupancy in 
+            # Escherichia coli (2009),
             # Nat Chem Biol
             self.cSubstrate = 2.5 * 10 ** -6   # ATP.AMP concentration (M) as a single concentration
         elif self.data_source == 'hiv_md_data':
