@@ -17,18 +17,88 @@ import seaborn as sns
 
 
 class simulation(object):
+    def __init__(self, data_source):
+        """
+        These values are assigned to a new object, unless overridden later.
+        """
+        # Model parameters
+        self.kT = 0.6  # RT = 0.6 kcal per mol
+        # The butane-derived D value is 3 * 10 ** 15, but we've now shown that
+        # a lower value can be safely used without changing the results much.
+        self.D = 3 * 10 ** 12  # degree**2 per second
+        # By default, don't iteratively refine the steady state population.
+        self.iterations = 0
+        # Implementation parameters
+        self.dir = None
+        self.data_source = data_source
+        if self.data_source == 'pka_md_data' or self.data_source == 'pka_reversed':
+            self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
+            self.offset_factor = 6.0  # kcal per mol
+            self.catalytic_rate = 140  # per second
+            self.cSubstrate = 2 * 10 ** -3 # ATP concentration (M)
+        elif self.data_source == 'adk_md_data':
+            self.C_intersurface = 10 ** 6  # per mole per second
+            self.offset_factor = 5.7  # kcal per mol
+            self.catalytic_rate = 312  # per second
+            # Let's say ATP concentration = 9 * 10**-3 M and AMP concentration = 2.8 * 10**-4 M
+            # Absolute metabolite concentrations and implied enzyme active site occupancy in
+            # Escherichia coli (2009), Nat Chem Biol
+            self.cSubstrate = 2.5 * 10 ** -6   # ATP.AMP concentration (M) as a single concentration
+        elif self.data_source == 'hiv_md_data':
+            self.C_intersurface = 10 ** 6  # per mole per second
+            self.offset_factor = 4.5  # kcal per mol
+            self.catalytic_rate = 0.3  # per second
+            self.cSubstrate = 2 * 10 ** -3 # Gag concentration (M)
+        elif self.data_source == 'manual':
+            print('Using manual parameters, specify C, offset, and catalytic rate.')
+        else:
+            print('No data source; no values for C, offset, and catalytic rate')
+
+        # The name needs to be provided at runtime, unless the data source is manual.
+        self.name = None
+        # The initial populations are empty, until parsed from the files.
+        self.unbound_population = []
+        self.bound_population = []
+        # The PDFs are derived from the populations.
+        self.PDF_unbound = None
+        self.PDF_bound = None
+        # The rates will be calculated from the energy surfaces.
+        self.forward_rates = None
+        self.backward_rates = None
+        # The transition matrix is composed from the rates.
+        self.tm = None
+        # The time step `dt` is determined so all elements in the transition matrix are in [0, 1).
+        self.dt = None
+        # The eigenvalues and steady state population are calculated from the transition matrix.
+        self.eigenvalues = None
+        self.ss = None
+        # The surface fluxes are calculated using the rates and the populations.
+        self.flux_u = None
+        self.flux_b = None
+        self.flux_ub = None
+
+
+        # By default, we run without any applied load on the motor.
+        self.load = False
+        if self.load:
+            self.load_slope = self.bins  # kcal per mol per (2 * pi) radians
+        else:
+            self.load_slope = 0
+
+
     def plot_input(self, save=False, filename=None):
         """
         This function plots the unbound and bound input histograms associated with a simulation object.
+        The input histograms are taken to be normalized populations derived from MD simulations.
         """
 
         fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
         ax1.plot(range(self.bins), self.unbound_population, c=self.unbound_clr)
-        ax1.plot(range(self.bins), self.bound_population, c=self.bound_clr)
+        ax1.plot(range(self.bins), self.bound_population, c=self.bound_clr, ls='--')
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
-        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi{}$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xticklabels([r'$-\pi$', r'$-\frac{1}{2}\pi{}$', r'$0$', r'$\frac{1}{2}\pi$', r'$\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$p$ (input population)')
         aesthetics.paper_plot(fig, scientific=False)
@@ -37,17 +107,18 @@ class simulation(object):
             
     def plot_energy(self, save=False, filename=None):
         """
-        This function plots the unbound and bound energies associated with a simulation object.
+        This function plots the unbound and bound energies (i.e., chemical potentials) associated with a
+        simulation object.
         """
 
         fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
         ax1.plot(range(self.bins), self.unbound, c=self.unbound_clr)
-        ax1.plot(range(self.bins), self.bound, c=self.bound_clr)
+        ax1.plot(range(self.bins), self.bound, c=self.bound_clr, ls='--')
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
-        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi{}$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        ax1.set_xlabel('Dihedral angle (rad)')
+        ax1.set_xticklabels([r'$-\pi$', r'$-\frac{1}{2}\pi{}$', r'$0$', r'$\frac{1}{2}\pi$', r'$\pi$'])
+        ax1.set_xlabel(r'$\theta$ (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
@@ -55,7 +126,7 @@ class simulation(object):
 
     def plot_ss(self, save=False, filename=None):
         """
-        This function plots the steady-state distribution and Boltzmann PDF associated with a simulation object.
+        This function plots the nonequilibrium steady-state distribution associated with a simulation object.
         By default, this will plot the eigenvector-derived steady-state distribution.
         """
 
@@ -63,9 +134,9 @@ class simulation(object):
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
         ax1.plot(range(self.bins), self.ss[0:self.bins], c=self.unbound_clr)
-        ax1.plot(range(self.bins), self.ss[self.bins:2 * self.bins], c=self.bound_clr)
+        ax1.plot(range(self.bins), self.ss[self.bins:2 * self.bins], c=self.bound_clr, ls='--')
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
-        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xticklabels([r'$-\pi$', r'$-\frac{1}{2}\pi{}$', r'$0$', r'$\frac{1}{2}\pi$', r'$\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$p$ (probability)')
         aesthetics.paper_plot(fig, scientific=False)
@@ -74,9 +145,10 @@ class simulation(object):
 
     def plot_flux(self, save=False, filename=None):
         """
-        This function plots the intrasurface flux sum and labels the graph with the attributions of the
-        simulation object.
+        This function plots the intrasurface flux separately and as a sum. The intrasurface flux is the directional
+        flux. This also prints the simulation parameters.
         """
+
         print('{:<25} {:<+10.2e} {:<10}'.format('C', self.C_intersurface, 'second**-1'))
         print('{:<25} {:<+10.2e} {:<10}'.format('D', self.D, 'degrees**2 second**-1'))
         print('{:<25} {:<+10.2e} {:<10}'.format('k_{cat}', self.catalytic_rate, 'second**-1'))
@@ -84,55 +156,55 @@ class simulation(object):
         print('{:<25} {:<+10.2e} {:<10}'.format('dt', self.dt, 'second**-1'))
         print('{:<25} {:<10} {:<10}'.format('-----------------', '---------', '---------'))
         print('{:<25} {:<+10.2e} {:<10}'.format('Intrasurface flux', np.mean(self.flux_u + self.flux_b),
-                                               'cycle second**-1'))
+                                                'cycle second**-1'))
+        print('{:<25} {:<+10.2e} {:<10}'.format('Peak intrasurface flux', np.max(np.hstack((abs(self.flux_u),
+                                                                                            abs(self.flux_b)))),
+                                                                                            'cycle second**-1'))
         print('{:<25} {:<+10.2e} {:<10}'.format('Intersurface flux', np.mean(self.flux_ub),
-                                               'cycle second**-1'))
+                                                'cycle second**-1'))
         if self.load:
             print('{:<25} {:<10} {:<10}'.format('-----------------', '---------', '---------'))
             print('{:<25} {:<+10.2e} {:<10}'.format('Applied load', self.load_slope, 'kcal mol**-1 cycle**-1'))
             print('{:<25} {:<+10.2e} {:<10}'.format('Power', self.load_slope * np.mean(self.flux_u + self.flux_b),
-                                                   'kcal mol**-1 second**-1'))
+                                                    'kcal mol**-1 second**-1'))
         fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
         ax1.plot(range(self.bins), self.flux_u, c=self.unbound_clr, label='U')
-        ax1.plot(range(self.bins), self.flux_b, c=self.bound_clr, label='B')
+        ax1.plot(range(self.bins), self.flux_b, c=self.bound_clr, label='B', ls='--')
         ax1.plot(range(self.bins), self.flux_b + self.flux_u, c='k', label='U+B')
         ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_u + self.flux_b),
-                                                                              np.std(self.flux_u + self.flux_b)))
+        # ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_u + self.flux_b),
+        #                                                                       np.std(self.flux_u + self.flux_b)))
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
-        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
-        ax1.set_xlabel('Dihedral angle (rad)')
-        ax1.set_ylabel('Flux $J$ (cycle second$^{-1}$)')
+        ax1.set_xticklabels([r'$-\pi$', r'$-\frac{1}{2}\pi{}$', r'$0$', r'$\frac{1}{2}\pi$', r'$\pi$'])
+        ax1.set_xlabel(r'$\theta$ (rad)')
+        ax1.set_ylabel('Flux $J$ (cycle s$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
     def plot_intersurface_flux(self, save=False, filename=None):
         """
-        This function plots the intersurface flux sum.
+        This function plots the intersurface flux, this is useful for considering driven, oar-like motion.
         """
+
         fig = plt.figure(figsize=(6 * 1.2, 6))
         gs = GridSpec(1, 1, wspace=0.2, hspace=0.5)
         ax1 = plt.subplot(gs[0, 0])
-        ax1.plot(range(self.bins), self.flux_ub + self.flux_u, c='k', label='U+B')
+        ax1.plot(range(self.bins), self.flux_ub, c='k', label='U+B')
         ax1.yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useMathText=True, useOffset=False))
-        ax1.set_title(r'{0:0.2f} $\pm$ {1:0.2f} cycle second$^{{-1}}$'.format(np.mean(self.flux_ub),
-                                                                              np.std(self.flux_ub)))
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
-        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xticklabels([r'$-\pi$', r'$-\frac{1}{2}\pi{}$', r'$0$', r'$\frac{1}{2}\pi$', r'$\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'Flux $J_{0 \leftrightarrow 1}$ (cycle second$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
 
-
     def plot_load(self, save=False, filename=None):
         """
         This function plots the unbound and bound energy surfaces with a constant added load.
-        :return:
         """
 
         fig = plt.figure(figsize=(6 * 1.2, 6))
@@ -149,13 +221,12 @@ class simulation(object):
         ax1.plot(np.arange(self.bins), self.bound, c=self.bound_clr)
 
         ax1.set_xticks([0, self.bins / 4, self.bins / 2, 3 * self.bins / 4, self.bins])
-        ax1.set_xticklabels(['$0$', r'$\frac{1}{2}\pi$', r'$\pi$', r'$\frac{3}{2}\pi$', r'$2\pi$'])
+        ax1.set_xticklabels([r'$-\pi$', r'$-\frac{1}{2}\pi{}$', r'$0$', r'$\frac{1}{2}\pi$', r'$\pi$'])
         ax1.set_xlabel('Dihedral angle (rad)')
         ax1.set_ylabel(r'$\mu$ (kcal mol$^{-1}$)')
         aesthetics.paper_plot(fig, scientific=False)
         if save:
             plt.savefig(filename + '.png', dpi=300, bbox_inches='tight')
-
 
     def plot_load_extrapolation(self, save=False, filename=None):
         """
@@ -192,9 +263,9 @@ class simulation(object):
     def data_to_energy(self, histogram):
         """
         This function takes in population histograms from Chris' PKA data and
-        (a) smoothes them with a Gaussian kernel with width 1;
+        (a) smooths them with a Gaussian kernel with width 1;
         (b) eliminates zeros by setting any zero value to the minimum of the data;
-        (c) turns the pouplation histograms to energy surfaces.
+        (c) turns the population histograms to energy surfaces.
         """
 
         histogram_smooth = gaussian_filter(histogram, 1)
@@ -211,10 +282,13 @@ class simulation(object):
         return energy
 
     def calculate_boltzmann(self):
+        """
+        This function calculates the normalized steady state probability density, given populations.
+        """
         boltzmann_unbound = np.exp(-1 * np.array(self.unbound) / self.kT)
         boltzmann_bound = np.exp(-1 * np.array(self.bound) / self.kT)
-        self.PDF_unbound = boltzmann_unbound / np.sum((boltzmann_unbound))
-        self.PDF_bound = boltzmann_bound / np.sum((boltzmann_bound))
+        self.PDF_unbound = boltzmann_unbound / np.sum(boltzmann_unbound)
+        self.PDF_bound = boltzmann_bound / np.sum(boltzmann_bound)
 
     def calculate_intrasurface_rates(self, energy_surface):
         """
@@ -235,7 +309,10 @@ class simulation(object):
 
     def calculate_intrasurface_rates_with_load(self, energy_surface):
         """
-        This function calculates intrasurface rates using the energy difference between adjacent bins.
+        This function calculates intrasurface rates using the energy difference between adjacent bins,
+        this function is distinct from `calculate_intrasurface_rates` because the load function
+        has different boundary conditions than the energy function. The energy function has perfect periodic
+        boundary conditions, but the load must continue to decrease or increase across the boundaries.
         """
         surface_with_load = np.hstack(([energy_surface[i] + self.load_function(i) for i in range(self.bins)]))
         # This should handle the interior elements just fine.
@@ -264,7 +341,7 @@ class simulation(object):
         """
         This function calculates the intersurface rates in two ways.
         For bound to unbound, the rates are calculated according to the energy difference and the catalytic rate.
-        For unbound to bound, the rates depend on the prefactor and the concentration of ATP.
+        For unbound to bound, the rates depend on the prefactor and the concentration of substrate.
         """
 
         bu_rm = np.empty((self.bins))
@@ -278,7 +355,8 @@ class simulation(object):
 
     def compose_tm(self, u_rm, b_rm, ub_rm, bu_rm):
         """
-        We take the four rate matrices (two single surface and two intersurface) and inject them into the transition matrix.
+        We take the four rate matrices (two single surface and two intersurface) and inject them
+        into the transition matrix.
         """
 
         tm = np.zeros((2 * self.bins, 2 * self.bins))
@@ -344,8 +422,9 @@ class simulation(object):
             else:
                 flux_b[i - self.bins] = -1 * (- ss[i] * tm[i][i + 1] / self.dt + ss[i + 1] * tm[i + 1][i] / self.dt)
         for i in range(self.bins):
-            flux_ub = -1 * (
+            flux_ub[i] = -1 * (
                             - ss[i] * tm[i][i + self.bins] / self.dt + ss[i + self.bins] * tm[i + self.bins][i] / self.dt)
+           
         self.flux_u = flux_u
         self.flux_b = flux_b
         self.flux_ub = flux_ub
@@ -471,7 +550,8 @@ class simulation(object):
                 print('Cannot read {} from {}.'.format(self.name, self.dir))
 
             cmap = sns.color_palette("Paired", 10)
-            self.unbound_clr = cmap[0]
+            # self.unbound_clr = cmap[0]
+            self.unbound_clr = cmap[3]
             self.bound_clr = cmap[1]
 
         elif self.data_source == 'hiv_md_data':
@@ -544,51 +624,4 @@ class simulation(object):
     def load_function(self, x):
         return x * self.load_slope / self.bins
 
-    def __init__(self, data_source):
-        """
-        These values are assigned to a new object, unless overridden later.
-        """
-        # Model parameters
-        self.kT = 0.6  # RT = 0.6 kcal per mol
-        # The butane-derived D value is 3 * 10 ** 15, but we've now shown that
-        # a lower value can be safely used without changing the results much.
-        # self.D = 3 * 10 ** 15                    # degree per second
-        self.D = 3 * 10 ** 12
-        # cATP should go to cSubstrate or something... 
-        self.iterations = 0
-        # Implementation parameters
-        self.dir = None
-        self.data_source = data_source
-        if self.data_source == 'pka_md_data' or self.data_source == 'pka_reversed':
-            self.C_intersurface = 0.24 * 10 ** 6  # per mole per second
-            self.offset_factor = 6.0  # kcal per mol
-            self.catalytic_rate = 140  # per second
-            self.cSubstrate = 2 * 10 ** -3 # ATP concentration (M)
-        elif self.data_source == 'adk_md_data':
-            self.C_intersurface = 10 ** 6  # per mole per second
-            self.offset_factor = 5.7  # kcal per mol
-            self.catalytic_rate = 312  # per second
-            # Let's say ATP concentration = 9 * 10**-3 M and AMP concentration = 2.8 * 10**-4 M
-            # Absolute metabolite concentrations and implied enzyme active site occupancy in 
-            # Escherichia coli (2009),
-            # Nat Chem Biol
-            self.cSubstrate = 2.5 * 10 ** -6   # ATP.AMP concentration (M) as a single concentration
-        elif self.data_source == 'hiv_md_data':
-            self.C_intersurface = 10 ** 6  # per mole per second
-            self.offset_factor = 4.5  # kcal per mol
-            self.catalytic_rate = 0.3  # per second
-            self.cSubstrate = 2 * 10 ** -3 # Gag concentration (M)
 
-        elif self.data_source == 'manual':
-            print('Using manual parameters, specify C, offset, and catalytic rate.')
-        else:
-            print('No data source; no values for C, offset, and catalytic rate')
-
-        self.name = None
-        self.unbound_population = []
-        self.bound_population = []
-        self.load = False
-        if self.load:
-            self.load_slope = self.bins  # kcal per mol per (2 * pi) radians
-        else:
-            self.load_slope = 0
